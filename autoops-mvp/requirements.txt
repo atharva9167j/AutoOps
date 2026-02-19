@@ -1,0 +1,6 @@
+flask
+docker
+google-generativeai
+streamlit
+pandas
+requests

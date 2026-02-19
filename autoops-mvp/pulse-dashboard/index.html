@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoOps | Autonomous SRE Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); }
+        .glow-green { box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+        .glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-fast { animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans overflow-hidden">
+
+    <!-- Top Navigation -->
+    <nav class="border-b border-slate-800 p-4 flex justify-between items-center bg-slate-900">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg">
+                <i class="fas fa-robot text-xl"></i>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">AutoOps <span class="text-blue-500 underline decoration-2">SRE</span></h1>
+        </div>
+        <div class="flex gap-6 items-center">
+            <div class="flex items-center gap-2">
+                <span class="h-3 w-3 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-sm text-slate-400">System Healthy</span>
+            </div>
+            <button class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-md text-sm transition">Settings</button>
+        </div>
+    </nav>
+
+    <main class="p-6 grid grid-cols-12 gap-6 max-h-screen">
+        
+        <!-- Column 1: Cluster Map -->
+        <div class="col-span-3 space-y-6">
+            <div class="glass border border-slate-800 rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase mb-4">Virtual Cluster (Docker)</h2>
+                <div class="grid grid-cols-2 gap-4" id="cluster-map">
+                    <!-- Container 1 -->
+                    <div class="bg-slate-800/50 border border-green-500/50 p-4 rounded-lg glow-green text-center">
+                        <i class="fas fa-server text-green-500 mb-2"></i>
+                        <p class="text-xs font-mono">node-prod-01</p>
+                        <p class="text-[10px] text-slate-500">172.17.0.2</p>
+                    </div>
+                    <!-- Placeholder for Auto-Scaling -->
+                    <div id="replica-placeholder" class="border-2 border-dashed border-slate-700 p-4 rounded-lg text-center flex items-center justify-center">
+                        <p class="text-[10px] text-slate-600 font-mono">WAITING_FOR_SCALING</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass border border-slate-800 rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase mb-2">AI Reasoning (Gemini 1.5)</h2>
+                <div class="text-xs space-y-3 font-mono text-blue-300">
+                    <p class="flex gap-2"><span>[14:02]</span> <span>Analyzing slow query logs...</span></p>
+                    <p class="flex gap-2 text-green-400"><span>[14:02]</span> <span>Solution: Apply BTREE index on 'user_id'</span></p>
+                    <p class="flex gap-2 animate-pulse-fast"><span>[14:05]</span> <span>Monitoring Git Diff for v2.1...</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Big Charts -->
+        <div class="col-span-6 space-y-6">
+            <div class="glass border border-slate-800 rounded-xl p-5 h-[400px]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase">Predictive Load Forecast</h2>
+                    <span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Confidence: 98.2%</span>
+                </div>
+                <canvas id="predictionChart"></canvas>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="glass border border-slate-800 rounded-xl p-5">
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase mb-2">DB Latency (ms)</h2>
+                    <p class="text-3xl font-bold" id="latency-val">1,420</p>
+                    <p class="text-xs text-red-500"><i class="fas fa-arrow-up"></i> Full Table Scan detected</p>
+                </div>
+                <div class="glass border border-slate-800 rounded-xl p-5">
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase mb-2">Auto-Heals Today</h2>
+                    <p class="text-3xl font-bold text-blue-400">12</p>
+                    <p class="text-xs text-slate-500">Zero human intervention required</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Live Logs -->
+        <div class="col-span-3 glass border border-slate-800 rounded-xl p-5 overflow-hidden flex flex-col">
+            <h2 class="text-sm font-semibold text-slate-400 uppercase mb-4">Live Execution Log</h2>
+            <div id="terminal" class="font-mono text-[11px] space-y-2 overflow-y-auto flex-1 text-slate-300">
+                <p class="text-slate-500">> system_init completed</p>
+                <p class="text-slate-500">> docker_daemon connected</p>
+                <p class="text-yellow-500">> WARNING: High CPU trend detected</p>
+                <p class="text-blue-400">> AI_ORACLE: Requesting scale-up</p>
+                <p class="text-green-500">> Executing: docker run --name node-02</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-800">
+                <button onclick="simulateHeal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-xs transition">
+                    TRIGGER AI SELF-HEAL DEMO
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // CHART LOGIC
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        const labels = Array.from({length: 20}, (_, i) => i + ":00");
+        
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Actual Load',
+                    data: [10, 12, 15, 25, 40, 45, 42, 48, 55, 60, null, null, null],
+                    borderColor: '#3b82f6',
+                    backgroundColor: '#3b82f6',
+                    tension: 0.4
+                },
+                {
+                    label: 'Predicted Forecast',
+                    data: [null, null, null, null, null, null, null, null, 55, 60, 75, 95, 100, 90, 80],
+                    borderColor: '#94a3b8',
+                    borderDash: [5, 5],
+                    tension: 0.4
+                }
+            ]
+        };
+
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                }
+            }
+        };
+
+        const myChart = new Chart(ctx, config);
+
+        // DEMO INTERACTIVE LOGIC
+        function simulateHeal() {
+            // 1. Show scaling
+            const placeholder = document.getElementById('replica-placeholder');
+            placeholder.className = "bg-slate-800/50 border border-blue-500/50 p-4 rounded-lg animate-pulse text-center";
+            placeholder.innerHTML = `<i class="fas fa-server text-blue-500 mb-2"></i><p class="text-xs font-mono">node-prod-02</p><p class="text-[10px] text-blue-400 tracking-widest">SCALING...</p>`;
+            
+            // 2. Fix Latency
+            setTimeout(() => {
+                document.getElementById('latency-val').innerText = "4.2";
+                document.getElementById('latency-val').classList.add('text-green-500');
+                const term = document.getElementById('terminal');
+                term.innerHTML += `<p class="text-green-400">> AI: Applied Index 'idx_users'</p>`;
+                term.innerHTML += `<p class="text-green-400">> Latency optimized (-99.4%)</p>`;
+                placeholder.classList.remove('animate-pulse');
+                placeholder.classList.add('glow-green', 'border-green-500/50');
+                placeholder.querySelector('p:last-child').innerText = "172.17.0.3";
+                placeholder.querySelector('p:last-child').classList.replace('text-blue-400', 'text-slate-500');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
