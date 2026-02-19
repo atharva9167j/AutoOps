@@ -7,7 +7,7 @@ import os
 import random
 
 # Configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCd7it3779r_TC68CSy4X1d4O2Z-4Iadr4")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 VICTIM_IMAGE_NAME = "victim-app"
 NETWORK_NAME = "autoops-net"
 
